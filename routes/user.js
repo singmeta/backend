@@ -7,6 +7,16 @@ const multer = require("multer");
 const form_data = multer();
 var CurrentTime = require("../functions/function");
 
+// 아이디 중복확인
+router.post("/email/validation", form_data.array(), (req, res) => {
+  User.findOne({ email: req.body.email, is_deleted: false }, (err, user) => {
+    if (!user) {
+      return res.status(200).json({ success: true });
+    }
+    return res.status(400).json({ success: false });
+  });
+});
+
 // 회원가입
 router.post("/register", form_data.array(), (req, res) => {
   const user = new User(req.body);
@@ -100,6 +110,18 @@ router.delete("/:id", (req, res) => {
 // 아이디 찾기 : 이메일이나 문자를 연동
 
 // 비밀번호 찾기
+
+// 케릭터 변경
+router.patch("/:id", (req, res) => {
+  User.findOneAndUpdate(
+    { _id: req.params.id, is_deleted: false },
+    { character: req.query.character, updated_at: CurrentTime.getCurrentDate() },
+    (err, user) => {
+      if (err) return res.status(400).json({ success: false, err });
+      return res.status(200).send({ success: true });
+    }
+  );
+});
 
 // 플레이 리스트 추가
 router.patch("/:user_id/playlists/:user_music_id", form_data.array(), (req, res) => {

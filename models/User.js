@@ -28,12 +28,12 @@ const userSchema = mongoose.Schema({
   },
   profile_picture_url: {
     type: String,
-    default: 0,
+    default: "https://singmeta.s3.amazonaws.com/user-profile/1661884597810_default_profile.png",
     required: true,
   },
   character: {
     type: String,
-    default: 0,
+    default: "ninja",
     required: true,
   },
   playlist: [],

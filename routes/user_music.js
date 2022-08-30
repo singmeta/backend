@@ -6,6 +6,7 @@ const { User } = require("../models/User");
 const { OriginMusic } = require("../models/OriginMusic");
 var CurrentTime = require("../functions/function");
 var bucket = require("../functions/bucket");
+const { getAudioDurationInSeconds } = require("get-audio-duration");
 
 // 생성
 router.post("", bucket.fileUploader.array("mp3"), (req, res) => {
@@ -16,17 +17,21 @@ router.post("", bucket.fileUploader.array("mp3"), (req, res) => {
         message: " 제공된 _id에 해당하는 user가 없습니다.",
       });
     }
-
-    OriginMusic.findOne({ _id: req.body.origin_music_id, is_deleted: false }, (err, originMusic) => {
-      if (!originMusic) {
-        return res.status(400).json({
-          success: false,
-          message: " 제공된 _id에 해당하는 originMusic이 없습니다.",
-        });
-      }
-      const userMusic = new UserMusic(req.body);
-      userMusic.created_at = CurrentTime.getCurrentDate();
-      userMusic.record_url = `https://singmeta.s3.amazonaws.com/${bucket.directory}`;
+    // OriginMusic.findOne({ _id: req.body.origin_music_id, is_deleted: false }, (err, originMusic) => {
+    //   if (!originMusic) {
+    //     return res.status(400).json({
+    //       success: false,
+    //       message: " 제공된 _id에 해당하는 originMusic이 없습니다.",
+    //     });
+    //   }
+    const userMusic = new UserMusic(req.body);
+    userMusic.user_nickname = user.nickname;
+    userMusic.created_at = CurrentTime.getCurrentDate();
+    userMusic.record_url = `https://singmeta.s3.amazonaws.com/${bucket.directory}`;
+    getAudioDurationInSeconds(userMusic.record_url).then((duration) => {
+      const min = parseInt(duration / 60);
+      const sec = parseInt(duration % 60);
+      userMusic.play_time = min + ":" + sec;
       userMusic.save((err, userMusicInfo) => {
         if (err) {
           return res.status(400).json({ success: false, err });
@@ -34,6 +39,8 @@ router.post("", bucket.fileUploader.array("mp3"), (req, res) => {
         return res.status(200).json({ success: true, _id: userMusicInfo._id });
       });
     });
+    
+    // });
   });
 });
 

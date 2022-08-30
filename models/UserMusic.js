@@ -6,6 +6,10 @@ const UserMusicSchema = mongoose.Schema({
     ref: "User",
     required: true,
   },
+  user_nickname: {
+    type: String,
+    required: true,
+  },
   title: {
     type: String,
     required: true,
@@ -13,9 +17,12 @@ const UserMusicSchema = mongoose.Schema({
   origin_music_id: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "OriginMusic",
-    required: true,
   },
   record_url: {
+    type: String,
+    required: true,
+  },
+  play_time: {
     type: String,
     required: true,
   },

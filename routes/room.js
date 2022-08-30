@@ -40,7 +40,8 @@ router.post("", form_data.array(), (req, res) => {
         if (err) {
           return res.status(400).json({ success: false, err });
         }
-        return res.status(200).json({ success: true, _id: roomInfo._id });
+        // return res.status(200).json({ success: true, _id: roomInfo._id });
+        return res.render("main.pug");
       });
     });
   });
@@ -49,7 +50,8 @@ router.post("", form_data.array(), (req, res) => {
 // 모든 방 조회
 router.get("", (req, res) => {
   Room.find({ is_deleted: false }, (error, list) => {
-    res.status(200).send({ rooms: list });
+    // res.status(200).send({ rooms: list });
+    res.send("map2");
   });
 });
 
@@ -100,9 +102,9 @@ router.get("/:id", (req, res) => {
 });
 
 // 방 입장 -> 비밀번호 유무 상관없이 가능
-router.get("/enter/:id", form_data.array(), (req, res) => {
+router.get("/enter/:roomid", form_data.array(), (req, res) => {
   // 방 찾기
-  Room.findOne({ _id: req.params.id, is_deleted: false }, (err, room) => {
+  Room.findOne({ _id: req.params.roomid, is_deleted: false }, (err, room) => {
     if (!room) {
       return res.status(400).json({
         success: false,
@@ -116,6 +118,12 @@ router.get("/enter/:id", form_data.array(), (req, res) => {
 
     return res.status(200).json({ success: true });
   });
+});
+
+// TO-DO
+// 방 입장 -> 비밀번호 유무 상관없이 가능
+router.get("/enterRoom/:mapid/:charname/:id/:nickname/:roomid", (req, res) => {
+  res.render("main.pug");
 });
 
 // 좋아요 수 증가

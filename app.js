@@ -21,16 +21,9 @@ const userMusic = require("./routes/user_music");
 const notice = require("./routes/notice");
 
 // view engine setup
-// app.set("views", path.join(__dirname, "views"));
-// app.set("view engine", "ejs");
-
-// app.set("view engine", "pug");
+app.set("view engine", "pug");
 app.set("view engine", "ejs");
 app.set("views", __dirname + "/views");
-
-// console.log(__dirname + "/views");
-
-// app.use("/public", express.static(__dirname + "/src/public"));
 
 app.use(logger("dev"));
 app.use(express.json());
@@ -64,6 +57,57 @@ app.use(function (err, req, res, next) {
   // render the error page
   res.status(err.status || 500);
   res.render("error");
+});
+
+const httpServer = require("http").createServer(app);
+const wsServer = require("socket.io")(httpServer, {
+  // ...
+});
+
+var users = [];
+
+wsServer.on("connection", (socket) => {
+  socket.onAny((event) => {
+    console.log(`Socket Event:${event}`);
+  });
+
+  console.log(socket.client.conn.server.clientsCount + " users connected");
+
+  socket.on("enter_room", async (roomName, done) => {
+    socket.roomName = roomName;
+    await socket.join(roomName);
+    await done();
+    await socket.to(roomName).emit("welcome", socket["nickname"]);
+    await users.push(socket["nickname"]);
+    await console.log(users);
+    await socket.to(roomName).emit("users", users);
+  });
+
+  socket.on("disconnecting", () => {
+    users.pop();
+    console.log("user poped!!");
+    console.log(users);
+    socket.rooms.forEach((room) => {
+      socket.to(room).emit("bye", socket.nickname);
+      socket.to(room).emit("users", users);
+    });
+  });
+  socket.on("new_message", (msg, room, done) => {
+    socket.to(room).emit("new_message", `${socket.nickname}: ${msg}`);
+    done();
+  });
+  socket.on("nickname", (nickname) => {
+    socket["nickname"] = nickname;
+  });
+  socket.on("offer", (offer, roomName) => {
+    socket.to(roomName).emit("offer", offer);
+  });
+  socket.on("answer", (answer, roomName) => {
+    socket.to(roomName).emit("answer", answer);
+  });
+  socket.on("ice", (ice, roomName) => {
+    socket.to(roomName).emit("ice", ice);
+  });
 });
 
 app.listen(port, () => {
