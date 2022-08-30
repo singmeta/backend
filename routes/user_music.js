@@ -39,7 +39,7 @@ router.post("", bucket.fileUploader.array("mp3"), (req, res) => {
         return res.status(200).json({ success: true, _id: userMusicInfo._id });
       });
     });
-    
+
     // });
   });
 });
@@ -53,7 +53,6 @@ router.get("", (req, res) => {
 
 // 특정 id 조회
 router.get("/:id", (req, res) => {
-  // 방 찾기
   UserMusic.findOne({ _id: req.params.id, is_deleted: false }, (err, userMusicInfo) => {
     if (!userMusicInfo) {
       return res.status(400).json({
@@ -67,7 +66,7 @@ router.get("/:id", (req, res) => {
 });
 
 // 차트 조회 : 인기순 조회
-router.get("/popular", (req, res) => {
+router.get("/chart/popular", (req, res) => {
   UserMusic.find({ is_showed: true, is_deleted: false })
     .sort([["likes", -1]])
     .limit(100)
@@ -77,10 +76,19 @@ router.get("/popular", (req, res) => {
 });
 
 // 차트 조회 : 최신순 조회
-router.get("/latest", (req, res) => {
+router.get("/chart/latest", (req, res) => {
   UserMusic.find({ is_showed: true, is_deleted: false })
     .sort([["created_at", -1]])
     .limit(100)
+    .exec(function (error, list) {
+      res.status(200).send({ userMusic: list });
+    });
+});
+
+// 차트 조회 : 노래 제목으로 검색
+router.get("/chart/search", (req, res) => {
+  UserMusic.find({ title: new RegExp(req.query.q), is_showed: true, is_deleted: false })
+    .sort([["created_at", -1]])
     .exec(function (error, list) {
       res.status(200).send({ userMusic: list });
     });
@@ -104,6 +112,21 @@ router.get("/users/:id/popular", (req, res) => {
 // 마이페이지 - 내 곡 조회 : 특정 유저의 id로 최신순 조회
 router.get("/users/:id/latest", (req, res) => {
   UserMusic.find({ user_id: req.params.id, is_deleted: false })
+    .sort([["created_at", -1]])
+    .exec(function (error, list) {
+      if (!list) {
+        return res.status(400).json({
+          success: false,
+          message: "해당 User Music이 존재하지 않습니다.",
+        });
+      }
+      res.status(200).send({ userMusic: list });
+    });
+});
+
+// 마이페이지 - 내 곡 조회 : 노래 제목으로 검색
+router.get("/users/:id/search", (req, res) => {
+  UserMusic.find({ user_id: req.params.id, title: new RegExp(req.query.q), is_deleted: false })
     .sort([["created_at", -1]])
     .exec(function (error, list) {
       if (!list) {

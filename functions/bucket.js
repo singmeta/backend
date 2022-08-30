@@ -21,7 +21,6 @@ exports.fileUploader = multer({
     s3: s3,
     bucket: "singmeta",
     key: (req, file, callback) => {
-      // console.log(file);
       if (req.query.directory == null || req.query.directory == "") return callback(new Error("Can't find directory"));
       const uploadDirectory = req.query.directory;
       const extension = path.extname(file.originalname);

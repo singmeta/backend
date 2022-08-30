@@ -50,6 +50,8 @@ const UserMusicSchema = mongoose.Schema({
   },
 });
 
+UserMusicSchema.index({ title: "text", user_nickname: "text" });
+
 const UserMusic = mongoose.model("UserMusic", UserMusicSchema);
 
 module.exports = { UserMusic };
