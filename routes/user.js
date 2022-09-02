@@ -180,27 +180,30 @@ router.get("/:user_id/playlists", form_data.array(), (req, res) => {
         message: " 제공된 _id에 해당하는 user가 없습니다.",
       });
     }
+    if (user.playlist.length == 0) {
+      return res.status(200).json({ success: true, message: "playlist가 존재하지 않습니다." });
+    }
 
     let playlists = new Array();
-    for (var i = 0; i < user.playlist.length; i++) {
-      (function (i) {
-        UserMusic.findOne({ _id: user.playlist[i], is_showed: true, is_deleted: false }, (err, userMusic) => {
-          if (!userMusic) {
-            // 삭제되거나 비공개처리된 user_music은 자체적으로 플레이리스트에서 제거
-            User.findOneAndUpdate(
-              { _id: req.params.user_id, is_deleted: false },
-              { $pull: { playlist: user.playlist[i] }, updated_at: CurrentTime.getCurrentDate() },
-              (err, user) => {
-                if (err) {
-                  return res.status(400).json({ success: false, err });
-                }
+    user.playlist.forEach((element, index) => {
+      UserMusic.findOne({ _id: element, is_showed: true, is_deleted: false }, (err, userMusic) => {
+        if (!userMusic) {
+          // 삭제되거나 비공개처리된 user_music은 자체적으로 플레이리스트에서 제거
+          User.findOneAndUpdate(
+            { _id: req.params.user_id, is_deleted: false },
+            { $pull: { playlist: element }, updated_at: CurrentTime.getCurrentDate() },
+            (err, user) => {
+              if (err) {
+                return res.status(400).json({ success: false, err });
               }
-            );
-          } else playlists.push(userMusic);
-          if (i == user.playlist.length - 1) return res.status(200).json({ success: true, playlists: playlists });
-        });
-      })(i);
-    }
+            }
+          );
+        } else playlists.push(userMusic);
+        if (index == user.playlist.length - 1) {
+          return res.status(200).json({ success: true, playlists: playlists });
+        }
+      });
+    });
   });
 });
 
