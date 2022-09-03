@@ -10,8 +10,8 @@ const RoomTypeSchema = mongoose.Schema({
     required: true,
   },
   theme: {
-    type: Number,
-    default: 0,
+    type: String,
+    default: "map2",
     required: true,
   },
   created_at: {

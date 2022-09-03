@@ -15,6 +15,9 @@ const RoomSchema = mongoose.Schema({
     ref: "RoomType",
     required: true,
   },
+  room_enter_id: {
+
+  },
   is_required_password: {
     type: Boolean,
     required: true,

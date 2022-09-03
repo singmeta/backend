@@ -41,17 +41,35 @@ router.post("", form_data.array(), (req, res) => {
           return res.status(400).json({ success: false, err });
         }
         // return res.status(200).json({ success: true, _id: roomInfo._id });
-        return res.render("main.pug");
+        return router.get(`/createRoom/${room_type.theme}/${user.character}/${user.nickname}/${room._id}`, (req, res) => {
+          res.render("main.pug");
+        });
       });
     });
   });
+});
+
+// 메타버스 방 입장 시 필요한 id 저장
+router.patch("/enter/:id", form_data.array(), (req, res) => {
+  Room.findOneAndUpdate(
+    { _id: req.params.id, is_deleted: false },
+    { room_enter_id: req.body.room_enter_id, updated_at: CurrentTime.getCurrentDate() },
+    (err, room) => {
+      if (err) return res.status(400).json({ success: false, err });
+      return res.status(200).send({
+        success: true,
+      });
+    }
+  );
 });
 
 // 모든 방 조회
 router.get("", (req, res) => {
   Room.find({ is_deleted: false }, (error, list) => {
     // res.status(200).send({ rooms: list });
-    res.send("map2");
+    return router.get("/getRooms", (req, res) => {
+      res.send("map2");
+    });
   });
 });
 
@@ -102,28 +120,41 @@ router.get("/:id", (req, res) => {
 });
 
 // 방 입장 -> 비밀번호 유무 상관없이 가능
-router.get("/enter/:roomid", form_data.array(), (req, res) => {
-  // 방 찾기
-  Room.findOne({ _id: req.params.roomid, is_deleted: false }, (err, room) => {
-    if (!room) {
+router.get("/enter/:roomid/users/:userid", form_data.array(), (req, res) => {
+  User.findOne({ _id: req.body.user_id, is_deleted: false }, (err, user) => {
+    if (!user) {
       return res.status(400).json({
         success: false,
-        message: "해당 Room이 존재하지 않습니다.",
+        message: " 제공된 _id에 해당하는 user가 없습니다.",
       });
     }
+    // 방 찾기
+    Room.findOne({ _id: req.params.roomid, is_deleted: false }, (err, room) => {
+      if (!room) {
+        return res.status(400).json({
+          success: false,
+          message: "해당 Room이 존재하지 않습니다.",
+        });
+      }
 
-    if (room.is_required_password && (req.body.password == "" || req.body.password == null || room.password !== parseInt(req.body.password))) {
-      return res.status(400).json({ success: false, message: "비밀번호가 틀렸습니다." });
-    }
+      if (room.is_required_password && (req.body.password == "" || req.body.password == null || room.password !== parseInt(req.body.password))) {
+        return res.status(400).json({ success: false, message: "비밀번호가 틀렸습니다." });
+      }
 
-    return res.status(200).json({ success: true });
+      RoomType.findOne({ _id: room.room_type_id, is_deleted: false }, (err, roomType) => {
+        if (!room) {
+          return res.status(400).json({
+            success: false,
+            message: "해당 Room이 존재하지 않습니다.",
+          });
+        }
+
+        return router.get(`/enterRoom/${roomType.theme}/${user.character}/${room.room_enter_id}/${user.nickname}/${room._id}`, (req, res) => {
+          res.render("main.pug");
+        });
+      });
+    });
   });
-});
-
-// TO-DO
-// 방 입장 -> 비밀번호 유무 상관없이 가능
-router.get("/enterRoom/:mapid/:charname/:id/:nickname/:roomid", (req, res) => {
-  res.render("main.pug");
 });
 
 // 좋아요 수 증가
