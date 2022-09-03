@@ -1,4 +1,5 @@
 const express = require("express");
+const request = require("request");
 const router = express.Router();
 const config = require("../config/key");
 const multer = require("multer");
@@ -41,12 +42,20 @@ router.post("", form_data.array(), (req, res) => {
           return res.status(400).json({ success: false, err });
         }
         // return res.status(200).json({ success: true, _id: roomInfo._id });
-        return router.get(`/createRoom/${room_type.theme}/${user.character}/${user.nickname}/${room._id}`, (req, res) => {
-          res.render("main.pug");
+        const options = {
+          uri: `http://localhost:5000/api/v1/rooms/createRoom/${room_type.theme}/${user.character}/${user.nickname}/${roomInfo._id}`,
+        };
+        request(options, function (err, response, body) {
+          return res.status(200).json({ success: true });
         });
       });
     });
   });
+});
+
+router.get("/createRoom/:mapid/:charname/:nickname/:roomid", (req, res) => {
+  //return res.status(200).json({ success: true });
+  res.render("main.pug");
 });
 
 // 메타버스 방 입장 시 필요한 id 저장
@@ -67,10 +76,17 @@ router.patch("/enter/:id", form_data.array(), (req, res) => {
 router.get("", (req, res) => {
   Room.find({ is_deleted: false }, (error, list) => {
     // res.status(200).send({ rooms: list });
-    return router.get("/getRooms", (req, res) => {
-      res.send("map2");
+    const options = {
+      uri: `http://localhost:5000/api/v1/rooms/getRooms`,
+    };
+    request(options, function (err, response, body) {
+      return res.status(200).json({ success: true });
     });
   });
+});
+
+router.get("/getRooms", (req, res) => {
+  res.send("map2");
 });
 
 // 인기순 조회
@@ -120,8 +136,8 @@ router.get("/:id", (req, res) => {
 });
 
 // 방 입장 -> 비밀번호 유무 상관없이 가능
-router.get("/enter/:roomid/users/:userid", form_data.array(), (req, res) => {
-  User.findOne({ _id: req.body.user_id, is_deleted: false }, (err, user) => {
+router.get("/enter/:roomid/pw/:password/users/:userid", form_data.array(), (req, res) => {
+  User.findOne({ _id: req.params.userid, is_deleted: false }, (err, user) => {
     if (!user) {
       return res.status(400).json({
         success: false,
@@ -137,7 +153,7 @@ router.get("/enter/:roomid/users/:userid", form_data.array(), (req, res) => {
         });
       }
 
-      if (room.is_required_password && (req.body.password == "" || req.body.password == null || room.password !== parseInt(req.body.password))) {
+      if (room.is_required_password && (req.params.password == "" || req.params.password == null || room.password !== parseInt(req.params.password))) {
         return res.status(400).json({ success: false, message: "비밀번호가 틀렸습니다." });
       }
 
@@ -149,12 +165,22 @@ router.get("/enter/:roomid/users/:userid", form_data.array(), (req, res) => {
           });
         }
 
-        return router.get(`/enterRoom/${roomType.theme}/${user.character}/${room.room_enter_id}/${user.nickname}/${room._id}`, (req, res) => {
-          res.render("main.pug");
+        const options = {
+          uri: `http://localhost:5000/api/v1/rooms/enterRoom/${roomType.theme}/${user.character}/${room.room_enter_id}/${user.nickname}/${room._id}`,
+        };
+        request(options, function (err, response, body) {
+          return res.status(200).json({ success: true });
         });
       });
     });
   });
+});
+
+router.get("/enterRoom/:mapid/:charname/:id/:nickname/:roomid", (req, res) => {
+  res.render("main.pug");
+  // return res.status(200).send({
+  //   success: true,
+  // });
 });
 
 // 좋아요 수 증가
