@@ -80,7 +80,7 @@ router.get("", (req, res) => {
       uri: `http://localhost:5000/api/v1/rooms/getRooms`,
     };
     request(options, function (err, response, body) {
-      return res.status(200).json({ success: true });
+      return res.status(200).json({ success: true, rooms: list });
     });
   });
 });
