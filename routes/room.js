@@ -54,8 +54,8 @@ router.post("", form_data.array(), (req, res) => {
 });
 
 router.get("/createRoom/:mapid/:charname/:nickname/:roomid", (req, res) => {
-  //return res.status(200).json({ success: true });
-  res.render("main.pug");
+  return res.status(200).json({ success: true });
+  // res.render("main.pug");
 });
 
 // 메타버스 방 입장 시 필요한 id 저장
@@ -86,7 +86,8 @@ router.get("", (req, res) => {
 });
 
 router.get("/getRooms", (req, res) => {
-  res.send("map2");
+  return res.status(200).json({ success: true });
+  // res.send("map2");
 });
 
 // 인기순 조회
@@ -135,7 +136,7 @@ router.get("/:id", (req, res) => {
   });
 });
 
-// 방 입장 -> 비밀번호 유무 상관없이 가능
+// 방 입장
 router.get("/enter/:roomid/pw/:password/users/:userid", form_data.array(), (req, res) => {
   User.findOne({ _id: req.params.userid, is_deleted: false }, (err, user) => {
     if (!user) {
@@ -177,10 +178,10 @@ router.get("/enter/:roomid/pw/:password/users/:userid", form_data.array(), (req,
 });
 
 router.get("/enterRoom/:mapid/:charname/:id/:nickname/:roomid", (req, res) => {
-  res.render("main.pug");
-  // return res.status(200).send({
-  //   success: true,
-  // });
+  // res.render("main.pug");
+  return res.status(200).send({
+    success: true,
+  });
 });
 
 // 좋아요 수 증가
